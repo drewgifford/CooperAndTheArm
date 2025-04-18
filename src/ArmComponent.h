@@ -15,5 +15,6 @@ class ArmComponent {
         virtual void calibrate(){};
         virtual void setup(int pin){};
         virtual void update(){};
+        virtual void setAngle(int microseconds){};
 };
 #endif

@@ -1,13 +1,13 @@
 #include <Servo.h>
 #include "ArmComponent.h"
 
-class ClawComponent : private ArmComponent {
+class ShoulderComponent : private ArmComponent {
     private:
         int calibrateDelay = 500;
 
     public:
-        int maxAngle = 165;
-        int minAngle = 65;
+        int maxAngle = 2000;
+        int minAngle = 1200;
         int currAngle = minAngle;
         Servo servo;
 

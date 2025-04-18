@@ -1,22 +1,20 @@
-#include "ElbowComponent.h"
+#include "BaseComponent.h"
 #include <Arduino.h>
 
-void ElbowComponent::setup(int pin){
+void BaseComponent::setup(int pin){
 
     servo.attach(pin, minAngle, maxAngle);
 
-    currAngle = minAngle;
+    currAngle = maxAngle;
     update();
+
+    delay(1000);
 
     calibrate();
 
-    
-
 }
 
-void ElbowComponent::calibrate(){
-
-    Serial.begin(9600);
+void BaseComponent::calibrate(){
 
     for(int i = maxAngle; i > minAngle; i--){
         servo.writeMicroseconds(i);
@@ -27,11 +25,11 @@ void ElbowComponent::calibrate(){
     
 }
 
-void ElbowComponent::update(){
+void BaseComponent::update(){
     this->servo.writeMicroseconds(currAngle);
 }
 
-void ElbowComponent::setAngle(int microseconds){
+void BaseComponent::setAngle(int microseconds){
     currAngle = microseconds;
     update();
 };

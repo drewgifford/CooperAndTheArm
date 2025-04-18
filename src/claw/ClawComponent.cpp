@@ -3,7 +3,7 @@
 
 void ClawComponent::setup(int pin){
 
-    this->servo.attach(pin);
+    this->servo.attach(pin, minAngle, maxAngle);
 
     currAngle = minAngle;
     update();
@@ -41,3 +41,8 @@ void ClawComponent::calibrate(){
 void ClawComponent::update(){
     this->servo.write(currAngle);
 }
+
+void ClawComponent::setAngle(int microseconds){
+    currAngle = microseconds;
+    update();
+};

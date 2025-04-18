@@ -1,7 +1,7 @@
-#include "ElbowComponent.h"
+#include "ShoulderComponent.h"
 #include <Arduino.h>
 
-void ElbowComponent::setup(int pin){
+void ShoulderComponent::setup(int pin){
 
     servo.attach(pin, minAngle, maxAngle);
 
@@ -14,7 +14,7 @@ void ElbowComponent::setup(int pin){
 
 }
 
-void ElbowComponent::calibrate(){
+void ShoulderComponent::calibrate(){
 
     Serial.begin(9600);
 
@@ -27,11 +27,11 @@ void ElbowComponent::calibrate(){
     
 }
 
-void ElbowComponent::update(){
+void ShoulderComponent::update(){
     this->servo.writeMicroseconds(currAngle);
 }
 
-void ElbowComponent::setAngle(int microseconds){
+void ShoulderComponent::setAngle(int microseconds){
     currAngle = microseconds;
     update();
 };

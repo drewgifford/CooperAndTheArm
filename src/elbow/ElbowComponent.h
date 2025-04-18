@@ -6,12 +6,14 @@ class ElbowComponent : private ArmComponent {
         int calibrateDelay = 500;
 
     public:
-        int maxAngle = 82;
-        int minAngle = 10;
+        int maxAngle = 1500;
+        int minAngle = 900;
         int currAngle = minAngle;
         Servo servo;
 
         void calibrate();
         void setup(int pin);
         void update();
+        void setAngle(int microseconds);
+        
 };
