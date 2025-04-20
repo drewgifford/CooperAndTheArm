@@ -3,35 +3,26 @@
 
 void ElbowComponent::setup(int pin){
 
-    servo.attach(pin, minAngle, maxAngle);
-
-    currAngle = minAngle;
-    update();
-
-    calibrate();
-
+    minAngle = 1000;
+    maxAngle = 1500;
     
-
+    ArmComponent::setup(pin);
 }
 
 void ElbowComponent::calibrate(){
 
-    Serial.begin(9600);
+    setAngle(minAngle);
+    //waitForMotion();
+    delay(calibrateDelay * 2);
 
-    for(int i = maxAngle; i > minAngle; i--){
-        servo.writeMicroseconds(i);
-        delay(10);
+    for(int i = minAngle; i < maxAngle; i += (maxAngle - minAngle) / 10){
+        setAngle(i);
+        while(isMoving()){
+            update();
+        }
+        delay(calibrateDelay);
     }
 
-    servo.writeMicroseconds(maxAngle);
+    setAngle(minAngle);
     
 }
-
-void ElbowComponent::update(){
-    this->servo.writeMicroseconds(currAngle);
-}
-
-void ElbowComponent::setAngle(int microseconds){
-    currAngle = microseconds;
-    update();
-};

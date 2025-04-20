@@ -4,14 +4,13 @@
 #include "shoulder/ShoulderComponent.h"
 #include "base/BaseComponent.h"
 
-#include <Servo.h>
-
-Servo servo;
-
 ClawComponent claw;
 ElbowComponent elbow;
 ShoulderComponent shoulder;
 BaseComponent base;
+
+const int NUM_COMPONENTS = 4;
+ArmComponent* components[NUM_COMPONENTS] = {&base, &shoulder, &elbow, &claw};
 
 int clawMaxAngle = 165;
 int clawMinAngle = 65;
@@ -20,74 +19,163 @@ int clawAngle = clawMinAngle;
 bool open = false;
 
 // put function declarations here:
-int myFunction(int, int);
+
+void calibrate(){
+  claw.zero();
+  elbow.zero();
+  shoulder.zero();
+  base.zero();
+
+  claw.calibrate();
+  elbow.calibrate();
+  shoulder.calibrate();
+  base.calibrate();
+}
 
 void setup() {
 
-  Serial.begin(9600);
-
+  Serial.begin(115200);
 
   // put your setup code here, to run once:
-  
-  delay(500);
+  claw.setup(9);
   elbow.setup(6);
   shoulder.setup(5);
   base.setup(3);
-  
 
+  Serial.println("READY");
 }
 
+bool isInteger(const char* str) {
+  if (*str == '-' || *str == '+') str++;
+  if (*str == '\0') return false;
 
-
-
-
-
-void calibrateServos(){
-  base.calibrate();
-  shoulder.calibrate();
-  elbow.calibrate();
-  claw.calibrate();
+  while (*str) {
+    if (!isdigit(*str)) return false;
+    str++;
+  }
+  return true;
 }
 
-void setAngles(String data){
+void dispatchCommand(const char* target, const char* instruction, const char* argument){
 
-  // 0 : Base
-  // 1 : Shoulder
-  // 2 : Elbow
-  // 3 : Claw
-  int angles[4];
-  int index = 0;
+  ArmComponent* component = nullptr;
 
-  char *token = strtok((char*)data.c_str(), ",");
-
-  while (token != NULL && index < 4){
-    angles[index] = atoi(token);
-    token = strtok(NULL, ",");
-
-    index++;
+  for(int i = 0; i < NUM_COMPONENTS; i++){
+    // Check if the component's name is equal to target
+    if(strcmp(components[i]->getName(), target) == 0){
+      component = components[i];
+      break;
+    }
   }
 
-  // ensure all bits are read
-  if(index != 4) return;
-  base.setAngle(angles[0]);
-  shoulder.setAngle(angles[1]);
-  elbow.setAngle(angles[2]);
-  claw.setAngle(angles[3]);
+  if(component == nullptr) {
+    Serial.print("RESPONSE.");
+    Serial.print(target);
+    Serial.print(".");
+    Serial.print(instruction);
+    Serial.print(" FAIL");
+    return;
+  }
+
+  if(strcmp(instruction, "SET_ANGLE") == 0){
+    
+    if(argument && isInteger(argument)){
+
+      Serial.print("RESPONSE.");
+      Serial.print(target);
+      Serial.println(".SET_ANGLE SUCCESS");
+
+      component->setAngleStandardized(atoi(argument));
+    }
+    else {
+      Serial.print("RESPONSE.");
+      Serial.print(target);
+      Serial.println(".SET_ANGLE FAIL");
+    }
+  }
+  else if(strcmp(instruction, "CALIBRATE") == 0){
+    component->calibrate();
+    Serial.print("RESPONSE.");
+    Serial.print(target);
+    Serial.println(".CALIBRATE SUCCESS");
+  }
+
+  else if(strcmp(instruction, "GET_SPEED") == 0){
+    Serial.print("RESPONSE.");
+    Serial.print(target);
+    Serial.print(".GET_SPEED ");
+    Serial.println(component->getSpeed());
+  }
+
+  else if(strcmp(instruction, "GET_ANGLE") == 0){
+
+    Serial.print("RESPONSE.");
+    Serial.print(target);
+    Serial.print(".GET_ANGLE ");
+    Serial.println(component->getAngleStandardized());
+
+  }
+  else if (strcmp(instruction, "SET_SPEED") == 0){
+    if(argument && isInteger(argument)){
+
+      Serial.print("RESPONSE.");
+      Serial.print(target);
+      Serial.println(".SET_SPEED SUCCESS");
+
+      component->setSpeed(atoi(argument));
+
+    }
+    else {
+      Serial.print("RESPONSE.");
+      Serial.print(target);
+      Serial.println(".SET_SPEED FAIL");
+    }
+  }
+}
+
+void handleCommand(char* command){
+
+  char* target = strtok(command, ".");
+  char* instructionWithArg = strtok(NULL, ".");
+
+  if(target == NULL || instructionWithArg == NULL) return;
+
+  char* instruction = strtok(instructionWithArg, " ");
+  char* argument = strtok(NULL, " ");
+
+  dispatchCommand(target, instruction, argument);
+}
+
+
+void processLine(char* line){
+
+  char *saveptr;
+  char *token = strtok_r(line, ",", &saveptr);
+
+  while (token != NULL){
+    handleCommand(token);
+    token = strtok_r(NULL, ",", &saveptr);
+  }
 
 }
+
+const int buffer_size = 128;
+static char buffer[buffer_size];
 
 void loop() {
-  
+
   if (Serial.available() > 0){
 
-    String data = Serial.readStringUntil('\n');
-    data.trim();
+    size_t len = Serial.readBytesUntil('\n', buffer, buffer_size - 1);
+    buffer[len] = '\0';
 
-    if(data == "CALIBRATE") {
-      return calibrateServos();
-    }
-
-    else return setAngles(data);
-
+    processLine(buffer);
   }
+
+  base.update();
+  shoulder.update();
+  elbow.update();
+  claw.update();
+
+
 }

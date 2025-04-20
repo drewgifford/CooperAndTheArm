@@ -1,18 +1,15 @@
 #include <Servo.h>
 #include "ArmComponent.h"
 
-class BaseComponent : private ArmComponent {
-    private:
-        int calibrateDelay = 500;
+class BaseComponent : public ArmComponent {
+    protected:
+        const char* name = "BASE";
 
     public:
-        int maxAngle = 3000;
-        int minAngle = 0;
-        int currAngle = minAngle;
-        Servo servo;
-
         void calibrate();
         void setup(int pin);
-        void update();
-        void setAngle(int microseconds);
+        const char* getName() override {
+            return name;
+        }
+
 };

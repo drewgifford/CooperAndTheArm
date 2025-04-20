@@ -3,46 +3,25 @@
 
 void ClawComponent::setup(int pin){
 
-    this->servo.attach(pin, minAngle, maxAngle);
+    minAngle = 1000;
+    maxAngle = 2000;
 
-    currAngle = minAngle;
-    update();
+    ArmComponent::setup(pin);
 
-    calibrate();
 }
 
 void ClawComponent::calibrate(){
     
-    currAngle = minAngle;
-    update();
+    setAngle(maxAngle);
+    waitForMotion();
+    delay(calibrateDelay * 2);
 
-    int steps = 10;
-    int step = (maxAngle - minAngle) / steps;
-
-    for(; currAngle <= maxAngle; currAngle += step){
-        update();
+    for(int i = maxAngle; i >= minAngle; i -= (maxAngle - minAngle) / 5){
+        setAngle(i);
+        waitForMotion();
         delay(calibrateDelay);
     }
 
-    this->servo.write(maxAngle);
-    delay(calibrateDelay * 2);
+    setAngle(maxAngle);
 
-    for(; currAngle >= minAngle; currAngle -= step){
-        update();
-        delay(calibrateDelay);
-    }
-
-    update();
-
-    
-    delay(calibrateDelay * 2);
 }
-
-void ClawComponent::update(){
-    this->servo.write(currAngle);
-}
-
-void ClawComponent::setAngle(int microseconds){
-    currAngle = microseconds;
-    update();
-};

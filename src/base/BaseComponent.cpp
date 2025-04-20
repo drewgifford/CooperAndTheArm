@@ -3,33 +3,25 @@
 
 void BaseComponent::setup(int pin){
 
-    servo.attach(pin, minAngle, maxAngle);
+    minAngle = 1000;
+    maxAngle = 2000;
 
-    currAngle = maxAngle;
-    update();
-
-    delay(1000);
-
-    calibrate();
+    ArmComponent::setup(pin);
 
 }
 
 void BaseComponent::calibrate(){
 
-    for(int i = maxAngle; i > minAngle; i--){
-        servo.writeMicroseconds(i);
-        delay(10);
+    setAngle(1500);
+    waitForMotion();
+    delay(calibrateDelay * 2);
+
+    for(int i = maxAngle; i > minAngle; i -= (maxAngle - minAngle) / 10){
+        setAngle(i);
+        waitForMotion();
+        delay(calibrateDelay);
     }
 
-    servo.writeMicroseconds(maxAngle);
-    
-}
+    setAngle(1500);
 
-void BaseComponent::update(){
-    this->servo.writeMicroseconds(currAngle);
 }
-
-void BaseComponent::setAngle(int microseconds){
-    currAngle = microseconds;
-    update();
-};

@@ -3,18 +3,36 @@
 #define ARM_COMPONENT_H
 
 class ArmComponent {
-    private:
-        int calibrateDelay;
+    protected:
+        int calibrateDelay = 500;
 
-    public:
         int maxAngle;
         int minAngle;
         int currAngle;
+        int targetAngle;
         Servo servo;
+        const char* name;
 
+        unsigned long lastUpdate = 0;
+        unsigned int updateInterval = 10;
+        int stepSize = 5;
+
+    public:
         virtual void calibrate(){};
-        virtual void setup(int pin){};
-        virtual void update(){};
-        virtual void setAngle(int microseconds){};
+        void zero();
+        void setup(int pin);
+        void update();
+        void setAngleStandardized(int value);
+        void setAngle(int microseconds);
+        void setSpeed(int speed);
+
+        int getAngle();
+        int getAngleStandardized();
+
+        int getSpeed();
+
+        bool isMoving();
+        void waitForMotion();
+        virtual const char* getName();
 };
 #endif

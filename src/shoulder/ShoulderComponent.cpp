@@ -3,35 +3,25 @@
 
 void ShoulderComponent::setup(int pin){
 
-    servo.attach(pin, minAngle, maxAngle);
-
-    currAngle = minAngle;
-    update();
-
-    calibrate();
-
-    
+    minAngle = 1200;
+    maxAngle = 2000;
+    ArmComponent::setup(pin);
 
 }
 
 void ShoulderComponent::calibrate(){
 
-    Serial.begin(9600);
+    setAngle(maxAngle);
+    waitForMotion();
+    delay(calibrateDelay * 2);
 
-    for(int i = maxAngle; i > minAngle; i--){
-        servo.writeMicroseconds(i);
-        delay(10);
+    for(int i = maxAngle; i > minAngle; i -= (maxAngle - minAngle) / 20){
+        setAngle(i);
+        waitForMotion();
+        delay(calibrateDelay);
     }
 
-    servo.writeMicroseconds(maxAngle);
+    setAngle(maxAngle);
     
 }
 
-void ShoulderComponent::update(){
-    this->servo.writeMicroseconds(currAngle);
-}
-
-void ShoulderComponent::setAngle(int microseconds){
-    currAngle = microseconds;
-    update();
-};
